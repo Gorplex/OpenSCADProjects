@@ -1,4 +1,4 @@
-
+include <WaterWheelShaft.scad>
 // Global resolution
 $fs = 0.01;  // Don't generate smaller facets than 0.1 mm
 $fa = 1;    // Don't generate larger angles than 5 degrees
@@ -47,6 +47,6 @@ difference(){
         Wheel();
         Cyl();
     }
-    import("WaterWheelShaft.stl");
-    //Shaft();
+    //import("WaterWheelShaft.stl");
+    Shaft();
 }
