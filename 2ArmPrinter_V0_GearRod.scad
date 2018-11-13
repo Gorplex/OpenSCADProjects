@@ -1,5 +1,7 @@
 $fa = 1;
 $fn = 50;
+//FPS:30 Steps:400
+
 
 difShift = 1;
 
@@ -13,6 +15,7 @@ SlotClear = .5;
 CarrageZ = 5;
 CarrageDia = 8;
 CarrageClear = .5;
+OuterCarrageDia=CarrageDia+6;
 
 ScrewDia=2;
 
@@ -51,7 +54,7 @@ module LeadScrew(difShfit){
 
 module Carrage(){
     difference(){
-        cylinder(CarrageZ, d=CarrageDia+6, true);
+        cylinder(CarrageZ, d=OuterCarrageDia, true);
         translate([0,0,-difShift])
         Pole();
     }
@@ -66,26 +69,73 @@ module Carrage(){
 module UppderCarrage(){
     color("red")
     difference(){
-        gear(CarrageZ,CarrageDia+6,10);
+        gear(CarrageZ,OuterCarrageDia,10);
         translate([0,0,-difShift])
         cylinder(CarrageZ+2*difShift, d=PoleDia, true);
     }
 }
 
-color("green")
-gear(2,PoleDia+15,15);
+module LowerArm(){
+    upperArmLen = 20;
+    color("magenta")
+    
+    rotate([0,0,180])
+    difference(){
+        translate([upperArmLen/2,0,CarrageZ/2])
+        cube([OuterCarrageDia+upperArmLen, OuterCarrageDia, CarrageZ], true);
+        translate([0,0,-difShift])
+        cylinder(CarrageZ+2*difShift, d=PoleDia, true);
+    }
+}
 
-translate([10,0,0])
-color("red")
-gear(PoleZ,3,8);
+module UpperArm(){
+    upperArmZ = 5;
+    upperArmLen = 20;
+    
+    color("red")
+    
+    difference(){
+        translate([upperArmLen/2,0,upperArmZ/2])
+        cube([OuterCarrageDia+upperArmLen, OuterCarrageDia, upperArmZ], true);
+        translate([0,0,-difShift])
+        cylinder(upperArmZ+2*difShift, d=PoleDia, true);
+    }
+}
+
 
 color("blue")
 LeadScrew(0);
+
+
+rotate([0,0,$t*360])
+color("green")
+gear(2,PoleDia+15,15);
+
+rotate([0,0,$t*360])
 color("green")
 Pole();
-translate([0,0,PoleZ+2*difShift+CarrageZ-20*$t])
 
-UppderCarrage();
-translate([0,0,PoleZ+difShift-20*$t])
+rotate([0,0,$t*360])
+translate([0,0,PoleZ+difShift-10*sin($t*360)-10])
 color("magenta")
 Carrage();
+
+rotate([0,0,$t*360])
+translate([0,0,PoleZ+difShift-10*sin($t*360)-10])
+LowerArm();
+
+
+
+rotate([0,0,$t*360])
+translate([10,0,0])
+rotate([0,0,-360*sin($t*360)])
+color("red")
+gear(PoleZ,3,8);
+
+translate([0,0,PoleZ+2*difShift+CarrageZ-10*sin($t*360)-10])
+rotate([0,0,180*sin($t*360)])
+UppderCarrage();
+
+translate([0,0,CarrageZ+PoleZ+2*difShift+CarrageZ-10*sin($t*360)-10])
+rotate([0,0,180*sin($t*360)])
+UpperArm();
