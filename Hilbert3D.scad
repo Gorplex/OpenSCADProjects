@@ -27,6 +27,6 @@ function Hilbert3D(step=0) = step == 0 ? BASE : concat(
     TranslateList(TransformList(Hilbert3D(step-1),scaleFact*HB8), area/2*[1,-1,-1]));
 
 
-ColorBars(Hilbert3D(2));
+ColorBars(Hilbert3D(3));
 
 
