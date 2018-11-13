@@ -32,6 +32,23 @@ module gear(height, diameter, teeth){
     }
 }
 
+module ShaftMesh(height, diameter, teeth){
+    //stick into cylinder 
+    difShift = .1;
+    toothWidth=1;
+    
+    difference(){
+        cylinder(height,d=diameter, true);
+        for(i = [0:teeth]){
+            rotate([0,0,i*360/teeth])
+            translate([diameter/2-toothWidth/2+difShift,0,height/2])
+            cube([toothWidth+difShift,toothWidth,height+2*difShift],true);
+        }
+        trnaslate([0,0,-difShift])
+        cylinder(height+2*difShift,d=diameter-2*toothWidth, true);
+    }
+}
+
 module Slot(Z, difShift, Clear){
     translate([CarrageDia/2+CarrageClear+difShift,0,Z/2])
     cube([(PoleDia-CarrageDia)/2+CarrageClear+2*difShift,SlotWidth+SlotClear,Z+2*difShift], true);
@@ -100,7 +117,7 @@ module UppderCarrage(){
     }
 }
 
-
+!ShaftMesh(20,15,20);
 
 color("blue")
 LeadScrew(0);
