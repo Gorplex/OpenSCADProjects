@@ -63,15 +63,15 @@ module Cyl(){
     cylinder(mainHeight,cylDia/2,cylDia/2);
 }
 //temp
-translate([0,0,mainHeight/2])
-cube([keySize,keySize,mainHeight],true);
+//translate([0,0,mainHeight/2])
+//cube([keySize,keySize,mainHeight],true);
 
 
-/*color("Blue")
+color("Blue")
 difference(){
     union(){
         Wheel();
         Cyl();
     }
     Shaft();
-}*/
+}
