@@ -4,6 +4,7 @@ $fn = 50;
 
 
 difShift = 1;
+globalClear = .5;
 
 
 PoleZ = 30;
@@ -44,8 +45,18 @@ module ShaftMesh(height, diameter, teeth){
             translate([diameter/2-toothWidth/2+difShift,0,height/2])
             cube([toothWidth+difShift,toothWidth,height+2*difShift],true);
         }
-        trnaslate([0,0,-difShift])
-        cylinder(height+2*difShift,d=diameter-2*toothWidth, true);
+        translate([0,0,-difShift])
+        cylinder(height+2*difShift,d=diameter-2*toothWidth+2*difShift, true);
+    }
+}
+
+module FullMesh(){
+    topZ=4;
+    
+    union(){
+        translate([0,0,20])
+        cylinder(topZ,d=15);
+        ShaftMesh(20,15,20);
     }
 }
 
@@ -57,14 +68,15 @@ module Slot(Z, difShift, Clear){
 
 module Pole() {
     color("green")
-    difference(){
-        union(){
+    union(){
+        gear(2,PoleDia+15,15);
+        difference(){
             cylinder(PoleZ, d=PoleDia, true);
-            gear(2,PoleDia+15,15);
+
+            translate([0,0,-difShift])
+            cylinder(PoleZ+2*difShift, d=CarrageDia+2*CarrageClear, true);
+            Slot(PoleZ,difShift, SlotClear);
         }
-        translate([0,0,-difShift])
-        cylinder(PoleZ+2*difShift, d=CarrageDia+2*CarrageClear, true);
-        Slot(PoleZ,difShift, SlotClear);
     }
 }
 module LeadScrew(difShfit){
@@ -116,8 +128,11 @@ module UppderCarrage(){
         cylinder(upperArmZ+CarrageZ+2*difShift, d=PoleDia, true);
     }
 }
+//FullMesh();
+//translate([0,0,10])
+//rotate([180,0,360/20/2])
+//FullMesh();
 
-!ShaftMesh(20,15,20);
 
 color("blue")
 LeadScrew(0);
