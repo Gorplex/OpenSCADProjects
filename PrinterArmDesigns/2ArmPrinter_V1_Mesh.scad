@@ -3,7 +3,7 @@ $fn = 50;
 //FPS:30 Steps:400
 
 difShift = 10;
-globalClear = .5;
+globalClear = .25;
 
 ScrewRad=2;
 
@@ -17,7 +17,7 @@ CarrageZ = 5;
 CarrageRad = 4;
 CarrageClear = .5;
 OuterCarrageRad=8;
-UpperArmLen = 40;
+
 
 //mesh
 MeshOffset = 2;
@@ -27,7 +27,25 @@ NumBars = 20;
 
 //lowerCarrage
 LowerCarrageRad=8;
+
+UpperArmLen = 40;
+UpperArmLen2 = 160;
 LowerArmLen=40;
+LowerArmLen2=160;
+
+
+
+module LowerArm2(){
+    translate([0,0,BarMeshZ+MeshOffset+2+1])
+    translate([0,-LowerCarrageRad,0])
+    cube([LowerArmLen2,LowerCarrageRad*2,CarrageZ-2]);
+}
+
+module UpperArm2(){
+    translate([0,0,BarMeshZ+MeshOffset+2+CarrageZ+1])
+    translate([0,-LowerCarrageRad,0])
+    cube([LowerArmLen2,LowerCarrageRad*2,CarrageZ-2]);
+}
 
 module BottomMesh(){
     color("blue")
@@ -66,7 +84,6 @@ module LowerCarrage(){
             rotate([0,0,360/NumBars/2])
             ShaftMesh(BarMeshZ, 2*MeshRad, NumBars);
             //arm
-            rotate([0,0,180])
             translate([0,-OuterCarrageRad,0])
             cube([LowerArmLen, 2*OuterCarrageRad, CarrageZ]);
             
@@ -177,3 +194,43 @@ rotate([0,0,$t*360])
 translate([0,0,10-10*sin($t*360)])
 UpperCarrage();
 
+//extra Arms
+LowTheta=180*sin($t*360);
+UpTheta=$t*360;
+
+function vAng(point) = atan2(point[1],point[0]);
+LowPoint = [LowerArmLen*cos(LowTheta),LowerArmLen*sin(LowTheta),0];
+UpPoint = [-UpperArmLen*cos(UpTheta),-UpperArmLen*sin(UpTheta),0];
+/*
+function vlen(point) = sqrt(pow(point[0],2)+pow(point[1],2)+pow(point[2],2));
+DirectDist = vlen(LowPoint-UpPoint); 
+HeadDir = (LowTheta+UpTheta)/2;
+A1 = LowerArmLen;
+A2 = LowerArmLen2;
+A3 = UpperArmLen2;
+//HeadDist = sqrt(pow(A1,2)+pow(A2,2)-2*A1*A2*cos((180+LowTheta-UpTheta)/2+acos((pow(A2,2)+pow(DirectDist,2)-pow(A3,2))/(2*A2*DirectDist))));
+HeadPoint = [HeadDist*cos(HeadDir),HeadDist*sin(HeadDir),0];;
+*/
+R1 = LowerArmLen2;
+R2 = UpperArmLen2;
+d = sqrt(pow(LowPoint[0]-UpPoint[0],2)+pow(LowPoint[1]-UpPoint[1],2));
+le = (pow(R1,2)-pow(R2,2)+pow(d,2))/(2*d);
+h = sqrt(pow(R1,2)-pow(le,2));
+
+HeadPoint =[le/d*(UpPoint[0]-LowPoint[0])+h/d*(UpPoint[1]-LowPoint[1])+LowPoint[0],le/d*(UpPoint[1]-LowPoint[1])-h/d*(UpPoint[0]-LowPoint[0])+LowPoint[1],0];
+
+echo(HeadPoint);
+
+
+translate(LowPoint)
+//rotate([0,0,180*sin($t*360)])
+translate([0,0,10-10*sin($t*360)])
+rotate([0,0,vAng(HeadPoint-LowPoint)])
+LowerArm2();
+
+
+translate(UpPoint)
+//rotate([0,0,$t*360])
+translate([0,0,10-10*sin($t*360)])
+rotate([0,0,vAng(HeadPoint-UpPoint)])
+UpperArm2();
