@@ -2,23 +2,121 @@ $fa = 1;
 $fn = 50;
 //FPS:30 Steps:400
 
-
-difShift = 1;
+difShift = 10;
 globalClear = .5;
 
+ScrewRad=2;
 
-PoleZ = 30;
-PoleDia = 12;
+PoleZ = 40;
+PoleRad = 6;
 
 SlotWidth = 1;
 SlotClear = .5;
 
 CarrageZ = 5;
-CarrageDia = 8;
+CarrageRad = 4;
 CarrageClear = .5;
-OuterCarrageDia=CarrageDia+6;
+OuterCarrageRad=8;
+UpperArmLen = 40;
 
-ScrewDia=2;
+//mesh
+MeshOffset = 2;
+MeshRad = 8;
+BarMeshZ = 20;
+NumBars = 20;
+
+//lowerCarrage
+LowerCarrageRad=8;
+LowerArmLen=40;
+
+module BottomMesh(){
+    color("blue")
+    difference(){
+    union(){
+        translate([0,0,MeshOffset+1])
+        ShaftMesh(BarMeshZ, 2*MeshRad, NumBars);
+        translate([0,0,MeshOffset])
+        gear(1,2*MeshRad+6, 20);
+        }
+        ClearenceCyl(globalClear)
+        cylinder(PoleZ, r=PoleRad);
+    }
+}
+
+module ShaftMesh(height, diameter, teeth){
+    //stick into cylinder 
+    difShift = .1;
+    toothWidth=1;
+    union(){
+        for(i = [0:teeth]){
+            rotate([0,0,i*360/teeth])
+            translate([diameter/2-toothWidth/2,0,height/2])
+            cube([toothWidth,toothWidth,height],true);
+        }
+    }
+}
+
+module LowerCarrage(){
+    color("yellow")
+    translate([0,0,BarMeshZ+MeshOffset+2])
+    difference(){
+        union(){
+            cylinder(CarrageZ, r=LowerCarrageRad);
+            translate([0,0,-BarMeshZ])
+            rotate([0,0,360/NumBars/2])
+            ShaftMesh(BarMeshZ, 2*MeshRad, NumBars);
+            //arm
+            rotate([0,0,180])
+            translate([0,-OuterCarrageRad,0])
+            cube([LowerArmLen, 2*OuterCarrageRad, CarrageZ]);
+            
+        }
+        ClearenceCyl(globalClear)
+        cylinder(CarrageZ, r=PoleRad);
+    }
+}
+
+
+module UpperCarrage(){
+    color("magenta")
+    translate([0,0,BarMeshZ+MeshOffset+2+CarrageZ])
+    union(){
+        //innner Carrage
+        difference(){
+            cylinder(CarrageZ, r=CarrageRad);
+            ClearenceCyl(globalClear)
+            cylinder(CarrageZ, r=ScrewRad);
+        }
+        Slot(CarrageZ);
+        //outer Carrage and arm
+        difference(){
+            union(){
+                cylinder(CarrageZ, r=OuterCarrageRad);
+                
+                //arm
+                rotate([0,0,180])
+                translate([0,-OuterCarrageRad,0])
+                cube([UpperArmLen, 2*OuterCarrageRad, CarrageZ]);
+            }   
+            ClearenceCyl(globalClear)
+            cylinder(CarrageZ, r=PoleRad);
+        }
+    }
+}
+
+
+module ClearenceCyl(clearence){
+    minkowski() { 
+        children();
+        cylinder(clearence, clearence, clearence, true);
+    }
+}
+module ClearenceCube(clearence){
+    minkowski() { 
+        children();
+        cube(clearence*[1,1,1],true);
+    }
+}
 
 module gear(height, diameter, teeth){
     //stick into cylinder 
@@ -33,118 +131,49 @@ module gear(height, diameter, teeth){
     }
 }
 
-module ShaftMesh(height, diameter, teeth){
-    //stick into cylinder 
-    difShift = .1;
-    toothWidth=1;
-    
-    difference(){
-        cylinder(height,d=diameter, true);
-        for(i = [0:teeth]){
-            rotate([0,0,i*360/teeth])
-            translate([diameter/2-toothWidth/2+difShift,0,height/2])
-            cube([toothWidth+difShift,toothWidth,height+2*difShift],true);
-        }
-        translate([0,0,-difShift])
-        cylinder(height+2*difShift,d=diameter-2*toothWidth+2*difShift, true);
-    }
+module Slot(slotZ){
+    ExtraLen = .5;
+    translate([CarrageRad-ExtraLen,-SlotWidth/2,0])
+    cube([PoleRad-CarrageRad+2*ExtraLen,SlotWidth,slotZ]);
 }
-
-module FullMesh(){
-    topZ=4;
-    
-    union(){
-        translate([0,0,20])
-        cylinder(topZ,d=15);
-        ShaftMesh(20,15,20);
-    }
-}
-
-module Slot(Z, difShift, Clear){
-    translate([CarrageDia/2+CarrageClear+difShift,0,Z/2])
-    cube([(PoleDia-CarrageDia)/2+CarrageClear+2*difShift,SlotWidth+SlotClear,Z+2*difShift], true);
-}
-
 
 module Pole() {
     color("green")
     union(){
-        gear(2,PoleDia+15,15);
         difference(){
-            cylinder(PoleZ, d=PoleDia, true);
-
+            gear(1,PoleRad*2+15,15);
+            ClearenceCyl(globalClear)
+            LeadScrew();
+        }
+        difference(){
+            cylinder(PoleZ, r=PoleRad);
             translate([0,0,-difShift])
-            cylinder(PoleZ+2*difShift, d=CarrageDia+2*CarrageClear, true);
-            Slot(PoleZ,difShift, SlotClear);
+            ClearenceCyl(globalClear)
+            cylinder(PoleZ+2*difShift, r=CarrageRad, true);
+            ClearenceCube(globalClear)
+            Slot(PoleZ);
         }
     }
 }
-module LeadScrew(difShfit){
-    translate([0,0,-difShift])
-    cylinder(PoleZ+2*difShift, d=ScrewDia, true);
-}
-
-
-module Carrage(){
-    upperArmLen = 20;
-    
-    color("magenta")
-    union(){
-        difference(){
-            cylinder(CarrageZ, d=OuterCarrageDia, true);
-            translate([0,0,-difShift])
-            Pole();
-        }
-        /*difference(){
-            union(){
-                cylinder(CarrageZ, d=CarrageDia, true);
-                Slot(CarrageZ,0,0);
-            }
-            LeadScrew(difShift);
-        }*/
-        rotate([0,0,180])
-        difference(){
-            translate([upperArmLen/2,0,CarrageZ/2])
-            cube([upperArmLen, OuterCarrageDia, CarrageZ], true);
-            translate([0,0,-difShift])
-            cylinder(CarrageZ+2*difShift, d=PoleDia, true);
-        }
-    }
-}
-module UppderCarrage(){
-    upperArmZ = 5;
-    upperArmLen = 20;
-    
+module LeadScrew(){
     color("red")
-    difference(){
-        union(){
-            gear(CarrageZ,OuterCarrageDia,10);
-            
-            translate([upperArmLen/2,0,CarrageZ+upperArmZ/2])
-            cube([upperArmLen, OuterCarrageDia, upperArmZ], true);
-        }
-        
-        translate([0,0,-difShift])
-        cylinder(upperArmZ+CarrageZ+2*difShift, d=PoleDia, true);
-    }
+    translate([0,0,-5])
+    cylinder(PoleZ+10, r=ScrewRad);
 }
-//FullMesh();
-//translate([0,0,10])
-//rotate([180,0,360/20/2])
-//FullMesh();
 
+rotate([0,0,180*sin($t*360)])
+translate([0,0,10-10*sin($t*360)])
+LowerCarrage();
 
-color("blue")
-LeadScrew(0);
+rotate([0,0,180*sin($t*360)])
+BottomMesh();
+
+LeadScrew();
 
 rotate([0,0,$t*360])
 Pole();
 
 rotate([0,0,$t*360])
-translate([0,0,PoleZ+difShift-10*sin($t*360)-10])
-Carrage();
-
-translate([0,0,PoleZ+2*difShift+CarrageZ-10*sin($t*360)-10])
-rotate([0,0,180*sin($t*360)])
-UppderCarrage();
+translate([0,0,10-10*sin($t*360)])
+UpperCarrage();
 
